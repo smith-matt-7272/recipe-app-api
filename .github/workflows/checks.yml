@@ -15,6 +15,10 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       - name: Checkout
         uses: actions/checkout@v2
+      - name: Print working directory
+        run: pwd
+      - name: List files
+        run: ls -a
       - name: Create Log space
         run: mkdir -p logs
       - name: Set log directory permissions
