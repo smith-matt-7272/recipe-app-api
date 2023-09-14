@@ -144,7 +144,7 @@ LOGGING = {
         "file": {
             "level": "INFO",
             "class": "logging.handlers.RotatingFileHandler",
-            "filename": "debug.log",
+            "filename": "/app/logs/recipes.log",
         },
         "console": {
             "class": "logging.StreamHandler"
