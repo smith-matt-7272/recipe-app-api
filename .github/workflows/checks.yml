@@ -23,10 +23,9 @@ jobs:
         run: mkdir -p ./app/logs
       - name: Set log directory permissions
         run: chmod 755 ./app/logs
-      - name: Check next level
       - name: More printing
         run: pwd
-        working-directory: ./app/
+        working-directory: ./app
       # - name: Test
       #   run: docker-compose run --rm app sh -c "python manage.py wait_for_db && python manage.py test"
       # - name: Lint
