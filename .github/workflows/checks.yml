@@ -15,21 +15,6 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       - name: Checkout
         uses: actions/checkout@v2
-      - name: Print working directory
-        run: pwd
-      - name: List files
-        run: ls -a
-      - name: Create Log space
-        run: mkdir -p ./app/logs
-      - name: Set log directory permissions
-        run: chmod 755 ./app/logs
-      - name: More printing
-        run: |
-          pwd
-          ls -a
-          touch recipes.log
-          chmod +x recipes.log
-        working-directory: ./app/logs
       - name: Test
         run: docker-compose run --rm app sh -c "python manage.py wait_for_db && python manage.py test"
       - name: Lint
