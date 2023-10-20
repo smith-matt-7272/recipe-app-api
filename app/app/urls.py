@@ -13,6 +13,7 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
+from core import views as core_views
 from django.contrib import admin
 from django.conf import settings
 from django.conf.urls.static import static
@@ -30,7 +31,8 @@ urlpatterns = [
          SpectacularSwaggerView.as_view(url_name='api-schema'),
          name='api-docs'),
     path('api/user/', include('user.urls')),
-    path('api/recipe/', include('recipe.urls'))
+    path('api/recipe/', include('recipe.urls')),
+    path('api/health-check/', core_views.health_check, name='health-check')
 ]
 
 if settings.DEBUG:
