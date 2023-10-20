@@ -1,11 +1,13 @@
 # Tests for the Tags api
 
+from core.models import Tag, Recipe
+from decimal import Decimal
 from django.contrib.auth import get_user_model
 from django.test import TestCase
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIClient
-from core.models import Tag
+
 
 from recipe.serializers import (
     TagSerializer
@@ -92,3 +94,46 @@ class PrivateTagsAPITests(TestCase):
         res = self.client.delete(url)
         self.assertEqual(res.status_code, status.HTTP_204_NO_CONTENT)
         self.assertFalse(Tag.objects.filter(id=tag.id).exists())
+
+    def test_filter_tags_assigned_to_recipes(self):
+        # Test listing tags by those assigned to recipes
+        t1 = Tag.objects.create(user=self.user, name='Dessert')
+        t2 = Tag.objects.create(user=self.user, name='Extra Dessert')
+        recipe = Recipe.objects.create(
+            title="Sammich",
+            time_minutes=5,
+            price=Decimal('1.00'),
+            user=self.user
+        )
+        recipe.tags.add(t1)
+
+        res = self.client.get(TAGS_URL, {'assigned_only': 1})
+
+        s1 = TagSerializer(t1)
+        s2 = TagSerializer(t2)
+
+        self.assertIn(s1.data, res.data)
+        self.assertNotIn(s2.data, res.data)
+
+    def test_filtered_tags_unique(self):
+        # Test filtered tags returns a unique list
+        t1 = Tag.objects.create(user=self.user, name='Dessert')
+        Tag.objects.create(user=self.user, name='Extra Dessert')
+        r1 = Recipe.objects.create(
+            title="Sammich",
+            time_minutes=5,
+            price=Decimal('1.00'),
+            user=self.user
+        )
+        r2 = Recipe.objects.create(
+            title="Ham Sammich",
+            time_minutes=5,
+            price=Decimal('1.00'),
+            user=self.user
+        )
+        r1.tags.add(t1)
+        r2.tags.add(t1)
+
+        res = self.client.get(TAGS_URL, {'assigned_only': 1})
+
+        self.assertEqual(len(res.data), 1)

@@ -1,9 +1,12 @@
+
+from core.models import Ingredient, Recipe
+from decimal import Decimal
 from django.contrib.auth import get_user_model
 from django.test import TestCase
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIClient
-from core.models import Ingredient
+
 
 from recipe.serializers import IngredientSerializer
 
@@ -88,3 +91,46 @@ class PrivateIngredientssAPITests(TestCase):
         res = self.client.delete(url)
         self.assertEqual(res.status_code, status.HTTP_204_NO_CONTENT)
         self.assertFalse(Ingredient.objects.filter(id=ingredient.id).exists())
+
+    def test_filter_ingredients_assigned_to_recipes(self):
+        # Test listing ingredients by those assigned to recipes
+        i1 = Ingredient.objects.create(user=self.user, name='Salt')
+        i2 = Ingredient.objects.create(user=self.user, name='Pepper')
+        recipe = Recipe.objects.create(
+            title="Sammich",
+            time_minutes=5,
+            price=Decimal('1.00'),
+            user=self.user
+        )
+        recipe.ingredients.add(i1)
+
+        res = self.client.get(INGREDIENTS_URL, {'assigned_only': 1})
+
+        s1 = IngredientSerializer(i1)
+        s2 = IngredientSerializer(i2)
+
+        self.assertIn(s1.data, res.data)
+        self.assertNotIn(s2.data, res.data)
+
+    def test_filtered_ingredients_unique(self):
+        # Test filtered ingredients returns a unique list
+        i1 = Ingredient.objects.create(user=self.user, name='Salt')
+        Ingredient.objects.create(user=self.user, name='Pepper')
+        r1 = Recipe.objects.create(
+            title="Sammich",
+            time_minutes=5,
+            price=Decimal('1.00'),
+            user=self.user
+        )
+        r2 = Recipe.objects.create(
+            title="Ham Sammich",
+            time_minutes=5,
+            price=Decimal('1.00'),
+            user=self.user
+        )
+        r1.ingredients.add(i1)
+        r2.ingredients.add(i1)
+
+        res = self.client.get(INGREDIENTS_URL, {'assigned_only': 1})
+
+        self.assertEqual(len(res.data), 1)
